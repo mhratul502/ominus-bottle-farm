@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Minecraft Food Checklist</title>
+<style>
+  :root{--bg:#f6f7f4;--card:#fff;--text:#1d2420;--muted:#66706a;--line:#dfe3dc;--accent:#3f8f3f;--accent-bg:#e6f3e4}
+  @media (prefers-color-scheme:dark){:root{--bg:#161a17;--card:#1f2521;--text:#e8ece9;--muted:#98a39c;--line:#2e3631;--accent:#6cc36c;--accent-bg:#233a24}}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.4}
+  .wrap{max-width:860px;margin:0 auto;padding:24px 16px 60px}
+  h1{font-size:1.6rem;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 16px}
+  .bar{position:sticky;top:0;background:var(--bg);padding:10px 0 12px;z-index:5;border-bottom:1px solid var(--line)}
+  .progress{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:8px}
+  .progress>div{height:100%;width:0;background:var(--accent);transition:width .2s}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+  .count{font-weight:600}
+  button{font:inherit;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer}
+  button:hover{border-color:var(--accent)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:18px}
+  .cat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .cat h2{font-size:1.05rem;margin:0;display:flex;justify-content:space-between;gap:8px}
+  .cat h2 span{color:var(--muted);font-weight:400;font-size:.9rem}
+  .cat .tools{margin:8px 0 6px;display:flex;gap:6px}
+  .cat .tools button{font-size:.8rem;padding:3px 8px}
+  label{display:flex;gap:10px;align-items:center;padding:7px 8px;border-radius:8px;cursor:pointer}
+  label:hover{background:var(--accent-bg)}
+  input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);flex:none}
+  label.done span{text-decoration:line-through;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Minecraft Food Checklist</h1>
+  <p class="sub">Tick off each food as you collect it. Progress is saved in your browser.</p>
+  <div class="bar">
+    <div class="progress"><div id="fill"></div></div>
+    <div class="row">
+      <span class="count" id="total"></span>
+      <span>
+        <button id="checkAll">Check all</button>
+        <button id="uncheckAll">Uncheck all</button>
+      </span>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const DATA = {
+  "Crops, Fruits & Berries": ["Apple","Baked Potato","Beetroot","Carrot","Chorus Fruit","Dried Kelp","Enchanted Golden Apple","Glow Berries","Golden Apple","Golden Carrot","Melon Slice","Potato","Sweet Berries"],
+  "Meats & Fish": ["Cooked Chicken","Cooked Cod","Cooked Mutton","Cooked Porkchop","Cooked Rabbit","Cooked Salmon","Raw Beef","Raw Chicken","Raw Cod","Raw Mutton","Raw Porkchop","Raw Rabbit","Raw Salmon","Steak (Cooked Beef)"],
+  "Baked Goods, Stews & Bottles": ["Beetroot Soup","Bread","Cookie","Honey Bottle","Mushroom Stew","Pumpkin Pie","Rabbit Stew","Suspicious Stew"],
+  "Harmful & Unusual Items": ["Poisonous Potato","Pufferfish","Rotten Flesh","Spider Eye","Tropical Fish"]
+};
+const KEY = "mc-food-checklist-v1";
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+
+const grid = document.getElementById("grid");
+const boxes = [];
+
+for (const [cat, items] of Object.entries(DATA)) {
+  const sec = document.createElement("section");
+  sec.className = "cat";
+  sec.innerHTML = `<h2>${cat} <span data-cc></span></h2>
+    <div class="tools"><button data-a="on">Check all</button><button data-a="off">Uncheck all</button></div>`;
+  const catBoxes = [];
+  items.forEach(name => {
+    const id = cat + "::" + name;
+    const lab = document.createElement("label");
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = !!state[id];
+    const sp = document.createElement("span");
+    sp.textContent = name;
+    lab.append(cb, sp);
+    cb.addEventListener("change", () => { state[id] = cb.checked; save(); refresh(); });
+    sec.appendChild(lab);
+    const rec = { id, cb, lab };
+    boxes.push(rec); catBoxes.push(rec);
+  });
+  sec.querySelectorAll("[data-a]").forEach(b => b.addEventListener("click", () => {
+    const on = b.dataset.a === "on";
+    catBoxes.forEach(r => { r.cb.checked = on; state[r.id] = on; });
+    save(); refresh();
+  }));
+  sec._boxes = catBoxes;
+  grid.appendChild(sec);
+}
+
+function refresh() {
+  let done = 0;
+  boxes.forEach(r => { r.lab.classList.toggle("done", r.cb.checked); if (r.cb.checked) done++; });
+  document.querySelectorAll(".cat").forEach(sec => {
+    const c = sec._boxes.filter(r => r.cb.checked).length;
+    sec.querySelector("[data-cc]").textContent = c + " / " + sec._boxes.length;
+  });
+  document.getElementById("total").textContent = done + " / " + boxes.length + " collected";
+  document.getElementById("fill").style.width = (done / boxes.length * 100) + "%";
+}
+function setAll(v) { boxes.forEach(r => { r.cb.checked = v; state[r.id] = v; }); save(); refresh(); }
+document.getElementById("checkAll").onclick = () => setAll(true);
+document.getElementById("uncheckAll").onclick = () => setAll(false);
+refresh();
+</script>
+</body>
+</html>
