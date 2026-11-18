@@ -3,108 +3,217 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Minecraft Food Checklist</title>
+<title>Minecraft Materials Checklist</title>
 <style>
-  :root{--bg:#f6f7f4;--card:#fff;--text:#1d2420;--muted:#66706a;--line:#dfe3dc;--accent:#3f8f3f;--accent-bg:#e6f3e4}
-  @media (prefers-color-scheme:dark){:root{--bg:#161a17;--card:#1f2521;--text:#e8ece9;--muted:#98a39c;--line:#2e3631;--accent:#6cc36c;--accent-bg:#233a24}}
+  :root{--bg:#14161a;--card:#1e2128;--line:#2e333d;--text:#e8eaed;--mut:#9aa0ab;--acc:#7cc576;--acc2:#b79cf0}
   *{box-sizing:border-box}
-  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.4}
-  .wrap{max-width:860px;margin:0 auto;padding:24px 16px 60px}
-  h1{font-size:1.6rem;margin:0 0 4px}
-  .sub{color:var(--muted);margin:0 0 16px}
-  .bar{position:sticky;top:0;background:var(--bg);padding:10px 0 12px;z-index:5;border-bottom:1px solid var(--line)}
-  .progress{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:8px}
-  .progress>div{height:100%;width:0;background:var(--accent);transition:width .2s}
-  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
-  .count{font-weight:600}
-  button{font:inherit;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer}
-  button:hover{border-color:var(--accent)}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:18px}
-  .cat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
-  .cat h2{font-size:1.05rem;margin:0;display:flex;justify-content:space-between;gap:8px}
-  .cat h2 span{color:var(--muted);font-weight:400;font-size:.9rem}
-  .cat .tools{margin:8px 0 6px;display:flex;gap:6px}
-  .cat .tools button{font-size:.8rem;padding:3px 8px}
-  label{display:flex;gap:10px;align-items:center;padding:7px 8px;border-radius:8px;cursor:pointer}
-  label:hover{background:var(--accent-bg)}
-  input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);flex:none}
-  label.done span{text-decoration:line-through;color:var(--muted)}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+  header{padding:20px 16px 8px;max-width:1000px;margin:auto}
+  h1{margin:0 0 4px;font-size:1.5rem}
+  .sub{color:var(--mut);font-size:.9rem}
+  .bar{max-width:1000px;margin:12px auto;padding:0 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .tabs button,.bar button,.bar input{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:.9rem}
+  .tabs button.on{background:var(--acc);color:#10210e;border-color:var(--acc);font-weight:600}
+  .bar input{flex:1;min-width:140px}
+  .progress{max-width:1000px;margin:0 auto 8px;padding:0 16px}
+  .track{height:10px;background:var(--card);border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+  .fill{height:100%;background:var(--acc);width:0;transition:width .3s}
+  .ptxt{font-size:.8rem;color:var(--mut);margin-top:4px}
+  main{max-width:1000px;margin:auto;padding:0 16px 40px}
+  h2{font-size:1rem;color:var(--acc2);margin:22px 0 8px;text-transform:uppercase;letter-spacing:.05em}
+  .row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:6px}
+  .row.done{opacity:.45}
+  .row.done .name{text-decoration:line-through}
+  .row input{width:20px;height:20px;accent-color:var(--acc);flex:none}
+  .name{flex:1;font-weight:500}
+  .note{display:block;font-weight:400;color:var(--mut);font-size:.78rem;margin-top:2px}
+  .qty{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .qty small{display:block;color:var(--mut);font-size:.72rem}
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{color:var(--mut);font-weight:600;position:sticky;top:0;background:var(--bg)}
+  td.n{text-align:right;font-variant-numeric:tabular-nums}
+  .wrap{overflow-x:auto}
+  .hint{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.82rem;color:var(--mut);margin-top:16px}
+  .hidden{display:none}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Minecraft Food Checklist</h1>
-  <p class="sub">Tick off each food as you collect it. Progress is saved in your browser.</p>
-  <div class="bar">
-    <div class="progress"><div id="fill"></div></div>
-    <div class="row">
-      <span class="count" id="total"></span>
-      <span>
-        <button id="checkAll">Check all</button>
-        <button id="uncheckAll">Uncheck all</button>
-      </span>
-    </div>
-  </div>
-  <div class="grid" id="grid"></div>
+<header>
+  <h1>⛏️ Minecraft Materials Checklist</h1>
+  <div class="sub">Tick items off as you gather them. Progress is saved in your browser.</div>
+</header>
+
+<div class="bar tabs">
+  <button id="tab-raw" class="on">Raw materials</button>
+  <button id="tab-list">Full materials list</button>
+  <input id="search" type="search" placeholder="Search…">
+  <button id="reset">Reset</button>
 </div>
 
+<div class="progress" id="progress">
+  <div class="track"><div class="fill" id="fill"></div></div>
+  <div class="ptxt" id="ptxt"></div>
+</div>
+
+<main>
+  <section id="raw"></section>
+  <section id="list" class="hidden"></section>
+  <div class="hint">
+    Raw amounts assume: <b>stonecutter</b> for stone, copper and slabs/stairs/walls; mossy blocks made with <b>vines</b> (swap for moss blocks if you like);
+    wood counts are logs (1 log = 4 planks); iron nuggets counted as ingots (9 nuggets = 1 ingot).
+    Buckets, lanterns etc. may be counted once per placement in the video — if you only need to reuse a few buckets, cut the iron down.
+  </div>
+</main>
+
 <script>
-const DATA = {
-  "Crops, Fruits & Berries": ["Apple","Baked Potato","Beetroot","Carrot","Chorus Fruit","Dried Kelp","Enchanted Golden Apple","Glow Berries","Golden Apple","Golden Carrot","Melon Slice","Potato","Sweet Berries"],
-  "Meats & Fish": ["Cooked Chicken","Cooked Cod","Cooked Mutton","Cooked Porkchop","Cooked Rabbit","Cooked Salmon","Raw Beef","Raw Chicken","Raw Cod","Raw Mutton","Raw Porkchop","Raw Rabbit","Raw Salmon","Steak (Cooked Beef)"],
-  "Baked Goods, Stews & Bottles": ["Beetroot Soup","Bread","Cookie","Honey Bottle","Mushroom Stew","Pumpkin Pie","Rabbit Stew","Suspicious Stew"],
-  "Harmful & Unusual Items": ["Poisonous Potato","Pufferfish","Rotten Flesh","Spider Eye","Tropical Fish"]
-};
-const KEY = "mc-food-checklist-v1";
+// ---------- FULL LIST (from the screenshot) ----------
+// [name, qty, how to make it]
+const LIST = [
+  ["Stone Bricks",238,"Stone → stonecutter (1:1)"],
+  ["Spruce Trapdoor",228,"6 planks → 2 trapdoors"],
+  ["Spruce Stairs",180,"6 planks → 4 stairs"],
+  ["Mossy Stone Bricks",178,"Stone brick + vine"],
+  ["Mossy Cobblestone Slab",167,"Mossy cobblestone (cobble + vine) → stonecutter, 2 slabs each"],
+  ["Spruce Slab",128,"3 planks → 6 slabs"],
+  ["Waxed Weathered Cut Copper Slab",128,"Weathered copper block + honeycomb → stonecutter → slabs"],
+  ["Spruce Fence",124,"4 planks + 2 sticks → 3 fences"],
+  ["Calcite",96,"Mine in amethyst geodes"],
+  ["Waxed Oxidized Cut Copper Slab",88,"Oxidized copper block + honeycomb → stonecutter → slabs"],
+  ["Jungle Log",80,"Chop"],
+  ["Moss Block",68,"Lush caves / bone meal on moss"],
+  ["Birch Fence Gate",60,"2 planks + 4 sticks"],
+  ["Jungle Trapdoor",60,"6 planks → 2 trapdoors"],
+  ["Chiseled Stone Bricks",58,"Stone → stonecutter (1:1)"],
+  ["Mossy Stone Brick Wall",57,"Mossy stone bricks → stonecutter (1:1)"],
+  ["Stripped Spruce Log",56,"Spruce log + axe"],
+  ["Spruce Fence Gate",48,"2 planks + 4 sticks"],
+  ["Lantern",45,"8 iron nuggets + torch"],
+  ["Oak Sign",30,"6 planks + stick → 3 signs"],
+  ["Mossy Stone Brick Slab",29,"Mossy stone bricks → stonecutter, 2 slabs each"],
+  ["Glass",28,"Smelt sand"],
+  ["Mossy Stone Brick Stairs",28,"Mossy stone bricks → stonecutter (1:1)"],
+  ["Small Dripleaf",28,"Lush caves (shears)"],
+  ["Stone Brick Slab",26,"Stone → stonecutter, 2 slabs each"],
+  ["Water Bucket",26,"Bucket (3 iron) + water"],
+  ["Barrel",24,"6 planks + 2 slabs"],
+  ["Spruce Sign",24,"6 planks + stick → 3 signs"],
+  ["Fern",16,"Find in taiga/forests"],
+  ["Soul Lantern",16,"8 iron nuggets + soul torch"],
+  ["Hopper",14,"5 iron ingots + chest"],
+  ["Chain",12,"Iron nugget + ingot + nugget"],
+  ["Chest",12,"8 planks"],
+  ["Waxed Copper Bulb",12,"Copper block + blaze rod + redstone → 4 bulbs, then wax"],
+  ["Flowering Azalea Leaves",8,"Lush caves / azalea trees"],
+  ["Composter",4,"7 wooden slabs"],
+  ["Lava Bucket",2,"Bucket (3 iron) + lava"],
+  ["Lightning Rod",1,"3 copper ingots"],
+  ["Spore Blossom",1,"Lush cave ceilings"]
+];
+
+// ---------- RAW MATERIALS ----------
+// [category, [name, qty, note]]
+const RAW = [
+  ["Wood", [
+    ["Spruce Log",524,"468 for planks (1,871 planks) + 56 to strip"],
+    ["Jungle Log",125,"80 as blocks + 45 for trapdoors"],
+    ["Birch Log",60,"Fence gates"],
+    ["Oak Log",17,"Oak signs"]
+  ]],
+  ["Stone & Earth", [
+    ["Cobblestone",671,"587 smelted into stone + 84 for mossy cobble slabs"],
+    ["Vines",362,"For mossy stone bricks and mossy cobblestone"],
+    ["Calcite",96,""],
+    ["Moss Block",68,""],
+    ["Sand",28,"Smelt into glass"]
+  ]],
+  ["Metals & Redstone", [
+    ["Iron Ingot",223,"Lanterns, chains, hoppers, buckets (≈25 iron blocks)"],
+    ["Copper Block",30,"16 weathered + 11 oxidized + 3 for bulbs"],
+    ["Copper Ingot",3,"Lightning rod"],
+    ["Honeycomb",39,"Wax: 16 + 11 copper blocks + 12 bulbs"],
+    ["Blaze Rod",3,"Copper bulbs"],
+    ["Redstone Dust",3,"Copper bulbs"],
+    ["Coal / Charcoal",16,"Torches (+ ~80 more as smelting fuel)"],
+    ["Soul Sand / Soul Soil",4,"Soul torches"]
+  ]],
+  ["Plants", [
+    ["Small Dripleaf",28,""],
+    ["Fern",16,""],
+    ["Flowering Azalea Leaves",8,""],
+    ["Spore Blossom",1,""]
+  ]],
+  ["Liquids", [
+    ["Lava (in buckets)",2,""],
+    ["Water (in buckets)",26,""]
+  ]]
+];
+
+// ---------- STATE ----------
+const KEY = "mc-materials-v1";
 let state = {};
-try { state = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+try { state = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch(e) {}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} }
 
-const grid = document.getElementById("grid");
-const boxes = [];
-
-for (const [cat, items] of Object.entries(DATA)) {
-  const sec = document.createElement("section");
-  sec.className = "cat";
-  sec.innerHTML = `<h2>${cat} <span data-cc></span></h2>
-    <div class="tools"><button data-a="on">Check all</button><button data-a="off">Uncheck all</button></div>`;
-  const catBoxes = [];
-  items.forEach(name => {
-    const id = cat + "::" + name;
-    const lab = document.createElement("label");
-    const cb = document.createElement("input");
-    cb.type = "checkbox";
-    cb.checked = !!state[id];
-    const sp = document.createElement("span");
-    sp.textContent = name;
-    lab.append(cb, sp);
-    cb.addEventListener("change", () => { state[id] = cb.checked; save(); refresh(); });
-    sec.appendChild(lab);
-    const rec = { id, cb, lab };
-    boxes.push(rec); catBoxes.push(rec);
-  });
-  sec.querySelectorAll("[data-a]").forEach(b => b.addEventListener("click", () => {
-    const on = b.dataset.a === "on";
-    catBoxes.forEach(r => { r.cb.checked = on; state[r.id] = on; });
-    save(); refresh();
-  }));
-  sec._boxes = catBoxes;
-  grid.appendChild(sec);
+function stacks(n){
+  const s = Math.floor(n/64), r = n%64;
+  if(n<=64) return "";
+  return s+" stack"+(s>1?"s":"")+(r?" + "+r:"");
 }
 
-function refresh() {
-  let done = 0;
-  boxes.forEach(r => { r.lab.classList.toggle("done", r.cb.checked); if (r.cb.checked) done++; });
-  document.querySelectorAll(".cat").forEach(sec => {
-    const c = sec._boxes.filter(r => r.cb.checked).length;
-    sec.querySelector("[data-cc]").textContent = c + " / " + sec._boxes.length;
+function renderRaw(filter=""){
+  const el = document.getElementById("raw");
+  el.innerHTML = "";
+  RAW.forEach(([cat, items])=>{
+    const shown = items.filter(i=>i[0].toLowerCase().includes(filter));
+    if(!shown.length) return;
+    const h = document.createElement("h2"); h.textContent = cat; el.appendChild(h);
+    shown.forEach(([name,qty,note])=>{
+      const id = "raw:"+name;
+      const row = document.createElement("label");
+      row.className = "row"+(state[id]?" done":"");
+      row.innerHTML = `<input type="checkbox" ${state[id]?"checked":""}>
+        <span class="name">${name}${note?`<span class="note">${note}</span>`:""}</span>
+        <span class="qty">${qty}<small>${stacks(qty)}</small></span>`;
+      row.querySelector("input").addEventListener("change",e=>{
+        state[id]=e.target.checked; save(); row.classList.toggle("done",e.target.checked); progress();
+      });
+      el.appendChild(row);
+    });
   });
-  document.getElementById("total").textContent = done + " / " + boxes.length + " collected";
-  document.getElementById("fill").style.width = (done / boxes.length * 100) + "%";
 }
-function setAll(v) { boxes.forEach(r => { r.cb.checked = v; state[r.id] = v; }); save(); refresh(); }
-document.getElementById("checkAll").onclick = () => setAll(true);
-document.getElementById("uncheckAll").onclick = () => setAll(false);
+
+function renderList(filter=""){
+  const el = document.getElementById("list");
+  const rows = LIST.filter(i=>i[0].toLowerCase().includes(filter))
+    .map(([n,q,h])=>`<tr><td>${n}</td><td class="n">${q}</td><td>${h}</td></tr>`).join("");
+  el.innerHTML = `<div class="wrap"><table><thead><tr><th>Item</th><th class="n">Qty</th><th>How to make</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function progress(){
+  const all = RAW.flatMap(c=>c[1]);
+  const done = all.filter(i=>state["raw:"+i[0]]).length;
+  const pct = Math.round(done/all.length*100);
+  document.getElementById("fill").style.width = pct+"%";
+  document.getElementById("ptxt").textContent = `${done} / ${all.length} raw materials gathered (${pct}%)`;
+}
+
+// ---------- UI ----------
+const search = document.getElementById("search");
+function refresh(){ const f = search.value.trim().toLowerCase(); renderRaw(f); renderList(f); progress(); }
+search.addEventListener("input", refresh);
+document.getElementById("reset").addEventListener("click",()=>{
+  if(confirm("Clear all ticked items?")){ state={}; save(); refresh(); }
+});
+function tab(which){
+  document.getElementById("raw").classList.toggle("hidden",which!=="raw");
+  document.getElementById("list").classList.toggle("hidden",which!=="list");
+  document.getElementById("progress").classList.toggle("hidden",which!=="raw");
+  document.getElementById("tab-raw").classList.toggle("on",which==="raw");
+  document.getElementById("tab-list").classList.toggle("on",which==="list");
+}
+document.getElementById("tab-raw").onclick = ()=>tab("raw");
+document.getElementById("tab-list").onclick = ()=>tab("list");
 refresh();
 </script>
 </body>
